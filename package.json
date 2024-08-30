@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.3",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.14",
+    "nodemon": "^3.1.4"
+  },
+  "name": "day6",
+  "version": "1.0.0",
+  "main": "db.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server2.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
+}
