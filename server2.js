@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import nodemailer from 'nodemailer';
 import { connectToDB, db } from './db.js';
+import TaskModel from './TaskModel.js';
 import cron from 'node-cron';
 const app = express();
 app.use(cors());
@@ -15,30 +16,132 @@ const transporter = nodemailer.createTransport({
     pass: 'mkvw fmrx rorn bycr' // Your actual app password
   }
 });
+// const reminderJobs = {};
+// const scheduleReminder = (email) => {
+//     if (reminderJobs[email]) {
+//       console.log(`Reminder already scheduled for ${email}`);
+//       return;
+//     }
+  
+//     reminderJobs[email] = cron.schedule('*/60* * * * *', async () => {
+//       try {
+//         const mailOptions = {
+//           from: 'chegondirithinsurya@gmail.com',
+//           to: email,
+//           subject: 'Reminder to Complete Your Goal Setting',
+//           text: 'Complete your goal setting, it’s on the way!'
+//         };
+  
+//         await transporter.sendMail(mailOptions);
+//         console.log(`Reminder email sent to ${email}`);
+//       } catch (error) {
+//         console.error('Error sending reminder email:', error);
+//       }
+//     });
+//   };
+// const reminderJobs = {};
+
+// const scheduleReminder = async (email) => {
+//     try {
+//         const mailOptions = {
+//             from: 'chegondirithinsurya@gmail.com',
+//             to: email,
+//             subject: 'Reminder to Complete Your Goal Setting',
+//             text: 'You have added a new task. Please make sure to complete your goal setting!'
+//         };
+
+//         await transporter.sendMail(mailOptions);
+//         console.log(`Reminder email sent to ${email}`);
+//     } catch (error) {
+//         console.error('Error sending reminder email:', error);
+//     }
+// };
+// app.post('/addTask', async (req, res) => {
+//   const { email, task } = req.body;
+  
+//   try {
+//       // Add the task to the database
+//       // Example: await TaskModel.create({ email, task });
+      
+//       // After adding the task, send the reminder email
+//       await scheduleReminder(email);
+
+//       res.status(200).send({ message: 'Task added successfully and reminder email sent.' });
+//   } catch (error) {
+//       console.error('Error adding task:', error);
+//       res.status(500).send({ message: 'Error adding task.' });
+//   }
+// });
+
 const reminderJobs = {};
 const scheduleReminder = (email) => {
-    if (reminderJobs[email]) {
-      console.log(`Reminder already scheduled for ${email}`);
-      return;
+  if (reminderJobs[email]) {
+    console.log(`Reminder already scheduled for ${email}`);
+    return;
+  }
+
+  reminderJobs[email] = cron.schedule('*/60 * * * *', async () => {
+    const mailOptions = {
+      from: 'chegondirithinsurya@gmail.com',
+      to: email,
+      subject: 'Reminder to Complete Your Goal Setting',
+      text: 'You have added a new task. Please make sure to complete your goal setting!',
+    };
+
+    await sendEmail(mailOptions);
+  });
+};
+
+// Add Task Route
+// Add Task Route
+// Example Express.js endpoint
+app.post('/addTask', async (req, res) => {
+  try {
+    const { email, task } = req.body;
+    console.log('Received task:', task);  // Log received data
+
+    // Validate data
+    if (!email || !task || !task.task || !task.time) {
+      return res.status(400).json({ message: 'Invalid data' });
     }
-  
-    reminderJobs[email] = cron.schedule('*/60* * * * *', async () => {
-      try {
-        const mailOptions = {
-          from: 'chegondirithinsurya@gmail.com',
-          to: email,
-          subject: 'Reminder to Complete Your Goal Setting',
-          text: 'Complete your goal setting, it’s on the way!'
-        };
-  
-        await transporter.sendMail(mailOptions);
-        console.log(`Reminder email sent to ${email}`);
-      } catch (error) {
-        console.error('Error sending reminder email:', error);
+
+    // Add your logic to store the task in the database here
+
+    res.status(200).json({ message: 'Task added successfully' });
+  } catch (error) {
+    console.error('Error adding task:', error);  // Log errors
+    res.status(500).json({ message: 'Error adding task' });
+  }
+});
+
+const handleAddTask = async () => {
+  if (newTask.trim() && time) {
+    try {
+      const response = await axios.post('http://localhost:9000/addTask', {
+        email: 'user@example.com',  // Replace with the actual user email
+        task: { task: newTask, time }
+      });
+
+      if (response.status === 200) {
+        console.log('Task added successfully:', response.data);
+        setTasks([...tasks, { task: newTask, time, done: false }]);
+        setNewTask('');
+        setTime('');
+        alert('Task added successfully and reminder email sent.');
+      } else {
+        console.error('Failed to add task:', response);
+        alert('Failed to add task. Please try again.');
       }
-    });
-  };
-  
+    } catch (error) {
+      console.error('Error adding task:', error.response ? error.response.data : error.message);
+      alert('An error occurred while adding the task.');
+    }
+  } else {
+    alert('Please enter both task and time.');
+  }
+};
+
+
 // Home Route
 app.get('/', (req, res) => {
   res.json("Server is running successfully!");
