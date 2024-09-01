@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import { connectToDB, db } from './db.js';
 import TaskModel from './TaskModel.js';
 import cron from 'node-cron';
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -92,33 +93,44 @@ const scheduleReminder = (email) => {
   });
 };
 
-// Add Task Route
-// Add Task Route
-// Example Express.js endpoint
+
 app.post('/addTask', async (req, res) => {
+  const { email, task } = req.body;
+
+  // Validate data
+  if (!email || !task || !task.task || !task.time) {
+    return res.status(400).json({ message: 'Invalid data' });
+  }
+
   try {
-    const { email, task } = req.body;
-    console.log('Received task:', task);  // Log received data
+    // Add the task to the 'tasks' collection
+    const result = await db.collection('tasks').insertOne({
+      email,
+      task: task.task,
+      time: task.time
+    });
 
-    // Validate data
-    if (!email || !task || !task.task || !task.time) {
-      return res.status(400).json({ message: 'Invalid data' });
-    }
+    console.log('Task inserted:', result);
 
-    // Add your logic to store the task in the database here
+    // Schedule reminder email (if applicable)
+    scheduleReminder(email);
 
-    res.status(200).json({ message: 'Task added successfully' });
+    res.status(200).json({ message: 'Task added successfully and reminder email scheduled.' });
   } catch (error) {
-    console.error('Error adding task:', error);  // Log errors
-    res.status(500).json({ message: 'Error adding task' });
+    console.error('Error adding task:', error);
+    res.status(500).json({ message: 'Error adding task.' });
   }
 });
+
 
 const handleAddTask = async () => {
   if (newTask.trim() && time) {
     try {
+      // Assume you have stored the signed-in user's email in a variable or state, e.g., userEmail
+      const userEmail = user.email; // Replace this with the actual method to get the signed-in user's email
+
       const response = await axios.post('http://localhost:9000/addTask', {
-        email: 'user@example.com',  // Replace with the actual user email
+        email: userEmail,  // Use the actual user email here
         task: { task: newTask, time }
       });
 
@@ -158,16 +170,8 @@ app.get('/ast', async (req, res) => {
   }
 });
 
-// Insert a New Document into 'ast' Collection
-app.post('/insert', async (req, res) => {
-  try {
-    const result = await db.collection("ast").insertOne({ Name: req.body.name, Team: req.body.team });
-    res.json(result);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+
+
 
 // User Signup
 app.post('/signup', async (req, res) => {
