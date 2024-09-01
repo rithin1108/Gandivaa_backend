@@ -39,6 +39,8 @@ const scheduleReminder = (email) => {
 };
 
 
+
+
 app.post('/addTask', async (req, res) => {
   const { task } = req.body;
 
@@ -57,16 +59,21 @@ app.post('/addTask', async (req, res) => {
 
       console.log('Task inserted:', result);
 
+      // Get the inserted task's ID
+      const taskId = result.insertedId;
+
       // Schedule reminder email (if applicable)
       scheduleReminder(signedInUserEmail);
 
-      res.status(200).json({ message: 'Task added successfully and reminder email scheduled.' });
+      res.status(200).json({
+          message: 'Task added successfully and reminder email scheduled.',
+          taskId: taskId // Return the task ID
+      });
   } catch (error) {
       console.error('Error adding task:', error);
       res.status(500).json({ message: 'Error adding task.' });
   }
 });
-
 
 // Home Route
 app.get('/', (req, res) => {
